@@ -82,6 +82,8 @@ class Part
   def collides?
     each_with_pos do |b, x, y|
       return :invalid if x < 0 || x >= @field.width || y < 0
+    end
+    each_with_pos do |b, x, y|
       return :collides if y >= @field.height || @field[x, y]
     end
     false
@@ -205,8 +207,7 @@ field = Field.new
 scale = 20
 
 window = SF::RenderWindow.new(
-  SF.video_mode(field.width*scale, field.height*scale), "Tetrominos",
-  settings: SF.context_settings(depth: 32, antialiasing: 8)
+  SF.video_mode(field.width*scale, field.height*scale), "Tetrominos"
 )
 window.vertical_sync_enabled = true
 
@@ -233,7 +234,7 @@ while window.open?
         when SF::Keyboard::Up, SF::Keyboard::W, SF::Keyboard::E
           field.part.try { |part| part.cw }
         when SF::Keyboard::Down, SF::Keyboard::S
-          field.part.try { |part| field.step }
+          field.step
       end
     end
   end
