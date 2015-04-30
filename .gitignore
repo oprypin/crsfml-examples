@@ -1,0 +1,12 @@
+*
+!/*/
+!/*/*
+!**/resources/
+!**/resources/**
+.*
+**/libs/
+!Projectfile
+!README*
+!*.md
+!LICENSE
+!.gitignore
