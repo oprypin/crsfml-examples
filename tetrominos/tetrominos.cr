@@ -159,19 +159,19 @@ class Field
   
   def step
     @clock.restart
-    if !@part
-      @part = Part.new(self)
-      if @part.not_nil!.collides?
-        @over = true
-      end
-    else
-      if @part.not_nil!.down
-        @part.not_nil!.each_with_pos do |b, x, y|
+    if part = @part
+      if part.down
+        part.each_with_pos do |b, x, y|
           @body[y][x] = b if b
         end
         @part = nil
         lines
         step
+      end
+    else
+      part = @part = Part.new(self)
+      if part.collides?
+        @over = true
       end
     end
     true
@@ -184,9 +184,7 @@ class Field
       rect.position = SF.vector2f(x, y)
       target.draw(rect, states)
     end
-    if @part
-      @part.not_nil!.draw(target, states)
-    end
+    @part.try &.draw(target, states)
   end
   
   def lines
