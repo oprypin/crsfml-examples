@@ -42,6 +42,7 @@ class Tile
     @rectangle = RoundedRectangleShape.new(SF.vector2(0.9, 0.9), 0.05)
     @rectangle.origin = {0.45, 0.45}
     self.position = position
+    # The tile is initially small, will be enlarged
     self.scale = {0.1, 0.1}
   end
   
@@ -50,12 +51,16 @@ class Tile
   end
   def value=(value)
     @value = value
+    # Bump tile size when it's merged
     self.scale = {1.15, 1.15}
+    # Reset cached Text
     @text_height = nil
   end
-  property joined
+  
+  property merged
   
   def draw(g, states)
+    # Gradually return to normal scale
     if scale.y < 1
       sc = {scale.y + 0.2, 1}.min
       self.scale = {sc, sc}
@@ -66,11 +71,17 @@ class Tile
     
     states.transform *= transform
     
+    # Coordinates are scaled grid size/window size.
+    # We can't use a font of height 1 pixel, because then it would be just a big blur
+    # So we find out the real screen-coordinates height of the tile,
+    # use that for the font size, then proportionally scale the Text down.
     h = states.transform.transform_rect(SF.float_rect(0, 0, 1, 1)).height
     if h != @text_height
-      # Recreate the objects only when necessary
+      # Recreate the text object only when necessary (window was resized
+      # or cache was otherwise reset: `@text_height = nil`)
       @text_height = h
       
+      # Adjust for wide numbers
       size = 0.45
       l = value.to_s.length
       while l > 2
@@ -78,15 +89,13 @@ class Tile
         l -= 1
       end
       @text = text = SF::Text.new(value.to_s, $font, (size * h).to_i)
+      # Center the text. Slightly more to the left because the font is weird.
+      # And significantly more to the top because of baseline...
       text.origin = text.local_bounds.size * {0.55, 0.83}
+      # Scaling down as mentioned
       text.scale({1.0/h, 1.0/h})
     
-      begin
-        info = TILE_COLORS[value]
-      rescue
-        info = TILE_COLORS[0]
-      end
-      text.color, @rectangle.fill_color = info
+      text.color, @rectangle.fill_color = TILE_COLORS.fetch(value, TILE_COLORS[0])
     end
     
     g.draw @rectangle, states
@@ -99,7 +108,11 @@ class Game2048
     @pts = 0
     
     @grid = {} of {Int32, Int32} => Tile
-    @extra = [] of Tile
+    # Position -> Tile
+    # Note that a tile has 2 positions: its coordinates in the grid affect the logic, and
+    # the .position is the current on-screen coordinates (it differs during animations)
+    
+    @extra = [] of Tile # Leftover tiles that are in the process of being merged onto
     
     @all_coords = Set({Int32, Int32}).new
     (0...@size).each do |y|
@@ -119,7 +132,9 @@ class Game2048
   def spawn_tile
     empties = @all_coords.reject { |p| @grid.has_key? p }
     pos = empties[rand(empties.length)]
+    # 1/10 chance to spawn a 4
     @grid[pos] = Tile.new(rand(10) == 0 ? 4 : 2, SF.vector2(pos))
+    # Note how we use `pos` twice for grid-coordinates and animation-coordinates
   end
   
   def draw(window, states)
@@ -129,8 +144,13 @@ class Game2048
     window.clear BG_COLOR
     
     states.transform = states.transform
+      # Position the field in the center of the window,
+      # adding horizontal or vertical borders if the window is not square
       .translate((window.size - {m, m}) / 2.0)
+      # Scale so every tile has size 1x1
       .scale({scale, scale})
+      # Adjust by 0.5 because tiles have (0, 0) in their center
+      # and by 0.05 for border
       .translate({0.55, 0.55})
     
     @all_coords.each do |p|
@@ -141,6 +161,7 @@ class Game2048
     @grid.each do |p, tile|
       window.draw tile, states
     end
+    # Leftover tiles are drawn on top, so tiles appear to slide under them on merge.
     @extra.each do |tile|
       window.draw tile, states
     end
@@ -160,6 +181,7 @@ class Game2048
           return
         
         when SF::Event::Resized
+          # Prevent stretching, to make custom adaptive stretching.
           window.view = SF::View.from_rect(SF.float_rect(0, 0, event.width, event.height))
         
         when SF::Event::KeyPressed
@@ -175,45 +197,71 @@ class Game2048
           if deltas.has_key? event.code
             dx, dy = deltas[event.code]
             
-            to_move = {} of Tile => { {Int32, Int32}, {Int32, Int32} }
+            # The destinations of all tiles that are to be moved.
+            # We don't need to store the source positions because that's the tile's screen-coordinates.
+            to_move = {} of Tile => {Int32, Int32}
             
-            if (dx == 1 || dy == 1)
+            # The following code chooses the order in which the tiles will be traversed.
+            # Ex.: when the "right" direction is pressed, the order is the following:
+            #   09 05 01 --
+            #   10 06 02 --
+            #   11 07 03 --
+            #   12 08 04 --
+            # (Rightmost tiles are not traversed)
+            # To do this, we take a product of two ranges.
+            # In the first part horizontal and vertical movement are equivalent
+            # because they're a transpose away.
+            if (dx == 1 || dy == 1) # moving right or down
               aa = (0...@size-1).to_a.reverse
             else
               aa = (1...@size).to_a
             end
             bb = (0..@size-1).to_a
             
-            loop do
+            loop do  # Keep checking all tiles and trying to move them until no tiles have moved
               any_moved = false
               
               aa.product(bb) do |a, b|
+                # The mentioned transpose
                 x, y = (dx != 0 ? {a, b} : {b, a})
                 
+                # Can we move this tile?
                 move = false
                 
                 this = @grid[{x, y}]?
                 next unless this
                 
+                # The tile we will be trying to move onto
                 nxt = @grid[{x+dx, y+dy}]?
                 if nxt
-                  if this.value == nxt.value && !this.joined && !nxt.joined
+                  # We can merge only equal value tiles that haven't been merged this turn
+                  if this.value == nxt.value && !this.merged && !nxt.merged
                     move = true
+                    # The neighbor will be overwritten in the grid,
+                    # but we want to keep drawing it until the animation ends
                     @extra.push nxt
-                    this.joined = true
+                    this.merged = true
                   end
-                else
+                else # free slot
                   move = true
                 end
                 if move
-                  if to_move.has_key? this
-                    to_move[this] = {to_move[this][0], {x+dx, y+dy}}
-                  else
-                    to_move[this] = { {x, y}, {x+dx, y+dy} }
-                  end
+                  # Mark the tile to be moved to the neighboring slot.
+                  # Grid-coordinates will be updated accordingly, but screen-coordinates
+                  # still keep the original location.
+                  to_move[this] = {x+dx, y+dy}
+                  
+                  # Move from here to the neighboring slot.
+                  # possibly overwriting a tile (which was saved to @extra previously).
                   @grid.delete({x, y})
                   @grid[{x+dx, y+dy}] = this
                   
+                  # We move the tile on grid in each iteration, but even though it may have
+                  # been moved multiple times, its screen-coordinates still contain the
+                  # original location. Long movements' animation has the same duration
+                  # as 1-tile movements.
+                  
+                  # All tiles will be traversed again
                   any_moved = true
                 end
               end
@@ -222,26 +270,30 @@ class Game2048
             end
             
             unless to_move.empty?
-              n = @size+1 # animation duration
+              n = @size+1 # animation happens in n frames
               (1..n).each do |i|
-                to_move.each do |tile, ab|
-                  a, b = ab
-                  tile.position = SF.vector2(a)*(1 - i.fdiv n) + SF.vector2(b)*(i .fdiv n)
+                to_move.each do |tile, dest|
+                  # Linear interpolation between two points
+                  tile.position = tile.position*(1 - i.fdiv n) + SF.vector2(dest)*(i .fdiv n)
                 end
+                # We actually interrupt the normal flow of the event loop,
+                # drawing frames and waiting for sync, for simplicity.
                 frame(window)
               end
             end
             
+            # Forget merged tiles
             @extra.clear
             
             @grid.each_value do |tile|
-              if tile.joined
-                tile.joined = false
+              if tile.merged
+                tile.merged = false
                 tile.value *= 2
                 @pts += tile.value
               end
             end
             
+            # `to_move.empty` means nothing moved, so an invalid move
             spawn_tile unless to_move.empty?
             
             if is_game_over
@@ -276,7 +328,9 @@ class Game2048
   end
   
   def is_game_over
+    # Game is not over if there are empty slots
     return false if @grid.length < @size*@size
+    # Game is not over if there are neighbors with equal values
     @all_coords.each do |p|
       x, y = p
       begin
