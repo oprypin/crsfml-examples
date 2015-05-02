@@ -74,22 +74,23 @@ class Part
     body.each_with_index do |line, y|
       line.each_with_index do |b, x|
         next unless b
-        yield b, @x + x, @y + y
+        yield b, SF.vector2(@x + x, @y + y)
       end
     end
   end
   
   def collides?
-    each_with_pos do |b, x, y|
-      return :invalid if x < 0 || x >= @field.width || y < 0
+    each_with_pos do |b, p|
+      return :invalid if p.x < 0 || p.x >= @field.width || p.y < 0
     end
-    each_with_pos do |b, x, y|
-      return :collides if y >= @field.height || @field[x, y]
+    each_with_pos do |b, p|
+      return :collides if p.y >= @field.height || @field[p]
     end
     false
   end
   
-  def [](x, y)
+  def [](p)
+    x, y = p
     body[y][x]
   end
   
@@ -121,10 +122,10 @@ class Part
   end
   
   def draw(target, states)
-    rect = SF::RectangleShape.new(SF.vector2f(1, 1))
-    each_with_pos do |b, x, y|
+    rect = SF::RectangleShape.new({1, 1})
+    each_with_pos do |b, p|
       rect.fill_color = b
-      rect.position = SF.vector2f(x, y)
+      rect.position = p
       target.draw(rect, states)
     end
   end
@@ -146,7 +147,8 @@ class Field
   property interval
   getter over
   
-  def [](x, y)
+  def [](p)
+    x, y = p
     @body[y][x]
   end
   
@@ -154,7 +156,7 @@ class Field
     @body.each_with_index do |line, y|
       line.each_with_index do |b, x|
         next unless b
-        yield b, x, y
+        yield b, SF.vector2(x, y)
       end
     end
   end
@@ -163,8 +165,8 @@ class Field
     @clock.restart
     if part = @part
       if part.down
-        part.each_with_pos do |b, x, y|
-          @body[y][x] = b if b
+        part.each_with_pos do |b, p|
+          @body[p.y][p.x] = b if b
         end
         @part = nil
         lines
@@ -180,10 +182,10 @@ class Field
   end
   
   def draw(target, states)
-    rect = SF::RectangleShape.new(SF.vector2f(1, 1))
-    each_with_pos do |b, x, y|
+    rect = SF::RectangleShape.new({1, 1})
+    each_with_pos do |b, p|
       rect.fill_color = b
-      rect.position = SF.vector2f(x, y)
+      rect.position = p
       target.draw(rect, states)
     end
     @part.try &.draw(target, states)
