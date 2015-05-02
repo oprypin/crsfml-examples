@@ -71,7 +71,13 @@ class Tile
       # Recreate the objects only when necessary
       @text_height = h
       
-      @text = text = SF::Text.new(value.to_s, $font, (0.45 * h).to_i)
+      size = 0.45
+      l = value.to_s.length
+      while l > 2
+        size *= 0.8
+        l -= 1
+      end
+      @text = text = SF::Text.new(value.to_s, $font, (size * h).to_i)
       text.origin = text.local_bounds.size * {0.55, 0.83}
       text.scale({1.0/h, 1.0/h})
     
