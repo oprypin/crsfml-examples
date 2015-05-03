@@ -43,7 +43,7 @@ class Tile
     @rectangle.origin = {0.45, 0.45}
     self.position = position
     # The tile is initially small, will be enlarged
-    self.scale = {0.1, 0.1}
+    self.scale = {0, 0}
   end
   
   def value
@@ -57,15 +57,13 @@ class Tile
     @text_height = nil
   end
   
-  property merged
-  
   def draw(g, states)
     # Gradually return to normal scale
     if scale.y < 1
       sc = {scale.y + 0.2, 1}.min
       self.scale = {sc, sc}
     elsif scale.y > 1
-      sc = {scale.y - 0.02, 1}.max
+      sc = {scale.y - 0.025, 1}.max
       self.scale = {sc, sc}
     end
     
@@ -91,7 +89,7 @@ class Tile
       @text = text = SF::Text.new(value.to_s, $font, (size * h).to_i)
       # Center the text. Slightly more to the left because the font is weird.
       # And significantly more to the top because of baseline...
-      text.origin = text.local_bounds.size * {0.55, 0.83}
+      text.origin = text.local_bounds.size * {0.53, 0.83}
       # Scaling down as mentioned
       text.scale({1.0/h, 1.0/h})
     
@@ -114,7 +112,7 @@ class Game2048
     
     @extra = [] of Tile # Leftover tiles that are in the process of being merged onto
     
-    @all_coords = Set({Int32, Int32}).new
+    @all_coords = [] of {Int32, Int32}
     (0...@size).each do |y|
       (0...@size).each do |x|
         @all_coords << {x, y}
@@ -154,7 +152,7 @@ class Game2048
       .translate({0.55, 0.55})
     
     @all_coords.each do |p|
-      @empty.position = SF.vector2(p)
+      @empty.position = p
       window.draw @empty, states
     end
     
@@ -201,6 +199,9 @@ class Game2048
             # We don't need to store the source positions because that's the tile's screen-coordinates.
             to_move = {} of Tile => {Int32, Int32}
             
+            # All tiles that have already participated in a merge, so they can't merge anymore.
+            merged = Set(Tile).new
+            
             # The following code chooses the order in which the tiles will be traversed.
             # Ex.: when the "right" direction is pressed, the order is the following:
             #   09 05 01 --
@@ -235,12 +236,12 @@ class Game2048
                 nxt = @grid[{x+dx, y+dy}]?
                 if nxt
                   # We can merge only equal value tiles that haven't been merged this turn
-                  if this.value == nxt.value && !this.merged && !nxt.merged
+                  if this.value == nxt.value && (!merged.includes? this) && (!merged.includes? nxt)
                     move = true
                     # The neighbor will be overwritten in the grid,
                     # but we want to keep drawing it until the animation ends
-                    @extra.push nxt
-                    this.merged = true
+                    @extra << nxt
+                    merged << this
                   end
                 else # free slot
                   move = true
@@ -271,10 +272,11 @@ class Game2048
             
             unless to_move.empty?
               n = @size+1 # animation happens in n frames
+              start_positions = to_move.keys.map { |tile| {tile, tile.position} } .to_h
               (1..n).each do |i|
-                to_move.each do |tile, dest|
+                to_move.each do |tile, destination|
                   # Linear interpolation between two points
-                  tile.position = tile.position*(1 - i.fdiv n) + SF.vector2(dest)*(i .fdiv n)
+                  tile.position = start_positions[tile]*(1 - i.fdiv n) + SF.vector2(destination)*(i.fdiv n)
                 end
                 # We actually interrupt the normal flow of the event loop,
                 # drawing frames and waiting for sync, for simplicity.
@@ -285,12 +287,9 @@ class Game2048
             # Forget merged tiles
             @extra.clear
             
-            @grid.each_value do |tile|
-              if tile.merged
-                tile.merged = false
-                tile.value *= 2
-                @pts += tile.value
-              end
+            merged.each do |tile|
+              tile.value *= 2
+              @pts += tile.value
             end
             
             # `to_move.empty` means nothing moved, so an invalid move
@@ -300,7 +299,7 @@ class Game2048
               window.draw self
               
               rect = SF::RectangleShape.new(window.size)
-              rect.fill_color = SF.color(255, 255, 255, 64)
+              rect.fill_color = SF.color(255, 255, 255, 100)
               window.draw rect
               
               text = SF::Text.new("Game over!", $font, 100)
@@ -331,16 +330,10 @@ class Game2048
     # Game is not over if there are empty slots
     return false if @grid.length < @size*@size
     # Game is not over if there are neighbors with equal values
-    @all_coords.each do |p|
+    @grid.each do |p, tile|
       x, y = p
-      begin
-        return false if @grid[{x, y}].value == @grid[{x+1, y}].value
-      rescue
-      end
-      begin
-        return false if @grid[{x, y}].value == @grid[{x, y+1}].value
-      rescue
-      end
+      return false if x+1 < @size && tile.value == @grid[{x+1, y}].value
+      return false if y+1 < @size && tile.value == @grid[{x, y+1}].value
     end
     true
   end
