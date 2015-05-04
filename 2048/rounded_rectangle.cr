@@ -5,7 +5,7 @@ macro event_property(name, code)
   getter {{name}}
   def {{name.id}}=(value)
     @{{name.id}} = value
-    code
+    {{code}}
   end
 end
 
