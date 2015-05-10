@@ -14,4 +14,10 @@
     <a href="http://gfycat.com/IgnorantSoupyAnnelida">
     <img src="http://zippy.gfycat.com/IgnorantSoupyAnnelida.gif"/></a>
   </td>
+</tr><tr>
+  <td>
+    <h3><a href="minesweeper">Minesweeper</a></h3>
+  </td><td>
+    Work in progress
+  </td>
 </tr></table>
