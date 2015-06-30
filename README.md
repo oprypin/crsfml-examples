@@ -20,4 +20,10 @@
   </td><td>
     Work in progress
   </td>
+</tr><tr>
+  <td>
+    <h3><a href="cube">Cube</a></h3>
+  </td><td>
+    Rotating cube demonstrating usage of OpenGL
+  </td>
 </tr></table>
