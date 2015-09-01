@@ -117,9 +117,9 @@ class Minefield
       end
     end
     
-    states.texture = $tiles_texture.to_unsafe
+    states.texture = $tiles_texture
     target.draw tiles_array, states
-    states.texture = $digits_texture.to_unsafe
+    states.texture = $digits_texture
     target.draw digits_array, states
   end
 end
