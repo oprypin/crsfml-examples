@@ -16,6 +16,13 @@
   </td>
 </tr><tr>
   <td>
+    <h3><a href="slither">Slither</a></h3>
+  </td><td>
+    <a href="http://gfycat.com/EachWaryAmazondolphin">
+    <img src="http://giant.gfycat.com/AchingReflectingBunny.gif"/></a>
+  </td>
+</tr><tr>
+  <td>
     <h3><a href="minesweeper">Minesweeper</a></h3>
   </td><td>
     Work in progress
