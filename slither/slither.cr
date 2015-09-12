@@ -58,28 +58,6 @@ def orthogonal(a, b, d=1.0)
   ortho *= d / ortho.length
 end
 
-def random_color()
-  SF.color(rand(128) + 128, rand(128) + 128, rand(128) + 128)
-end
-
-
-# struct Food
-#   property position
-#   property size
-#   property color
-#   property nutrition
-#   
-#   def initialize(@position, @color, @size=20.0, @nutrition=5.0)
-#   end
-#   
-#   def draw(target, states)
-#     circle = SF::CircleShape.new(@size / 2)
-#     circle.origin = {@size / 2, @size / 2}
-#     circle.position = position
-#     circle.fill_color = @color
-#     target.draw circle, states
-#   end
-# end
 
 class Snake
   DENSITY = 0.5
@@ -93,7 +71,7 @@ class Snake
   @speed = 0
   @direction = 0.0
   
-  def initialize(@field, start, @texture, @length=1200.0, @thickness=70.0, @max_speed=350.0, @max_turn_rate=4.5, @friction=0.9, @turn_penalty=0.7)
+  def initialize(start, @texture, @length=1200.0, @thickness=70.0, @max_speed=350.0, @max_turn_rate=4.5, @friction=0.9, @turn_penalty=0.7)
     @body = Deque(SF::Vector2(Float64)).new
     (0...(@length / DENSITY).to_i).each do |i|
       @body.push(start + {0, i * DENSITY})
@@ -122,31 +100,10 @@ class Snake
 
     steps.times do
       head = @body[0] + {DENSITY * Math.sin(@direction), DENSITY * -Math.cos(@direction)}
-#       head.x %= @field.size.x
-#       head.y %= @field.size.y
       @body.unshift(head)
       @body.pop()
     end
   end
-  
-#   def grow()
-#     tail = @body[-1]
-#     3.times do
-#       @body.push tail
-#     end
-#   end
-#   
-#   def collides?(other: self)
-#     other.body.any? { |part| @body[0] == part }
-#   end
-#   
-#   def collides?(food: Food)
-#     @body[0] == food.position
-#   end
-#   
-#   def collides?()
-#     @body.drop(1).any? { |part| @body[0] == part }
-#   end
   
   def draw(target, states)
     va = [] of SF::Vertex
@@ -174,8 +131,9 @@ class Snake
       o1 = orthogonal(a, b, th / 2)
       o2 = orthogonal(b, c, th / 2)
       
-      va << SF.vertex(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, sz.y*isplit.abs/splits})
-      va << SF.vertex(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, sz.y*isplit.abs/splits})
+      ty = sz.y*isplit.abs/splits
+      va << SF.vertex(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, ty})
+      va << SF.vertex(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, ty})
 
       if ib == draw_rate*6
         eyes = [b+o1*0.75, b-o1*0.75]
@@ -211,56 +169,6 @@ class Snake
   end
 end
 
-class Field
-  getter size
-  
-  def initialize(@size)
-    @snakes = [] of Snake
-#     @foods = [] of Food
-  end
-  
-  def add(snake)
-    @snakes.push snake
-  end
-  
-  def step(dt)
-#     while @foods.length < @snakes.length + 1
-#       food = Food.new(SF.vector2(rand(@size.x), rand(@size.y)), random_color())
-#       
-#       @foods.push food
-#       @foods.push food unless @snakes.any? do |snake|
-#         snake.body.any? { |part| part == food.position }
-#       end
-#     end
-    
-    @snakes.each do |snake|
-      snake.step(dt)
-      
-#       @foods = @foods.reject do |food|
-#         if snake.collides? food
-#           snake.grow()
-#           true
-#         end
-#       end
-    end
-    
-    snakes = @snakes
-#     @snakes = snakes.reject do |snake|
-#       snake.collides? ||\
-#       snakes.any? { |snake2| snake != snake2 && snake.collides? snake2 }
-#     end
-  end
-  
-  def draw(target, states)
-    @snakes.each do |snake|
-      target.draw snake, states
-    end
-#     @foods.each do |food|
-#       target.draw food, states
-#     end
-  end
-end
-
 
 window = SF::RenderWindow.new(
   SF::VideoMode.desktop_mode, "Slither",
@@ -269,20 +177,15 @@ window = SF::RenderWindow.new(
 window.vertical_sync_enabled = true
 
 
-field = Field.new(window.size)
+snake1 = Snake.new(window.size / 2 - {window.size.x / 6, 0}, $snake_textures[0])
+snake2 = Snake.new(window.size / 2 + {window.size.x / 6, 0}, $snake_textures[1])
+snakes = [snake1, snake2]
 
-snake1 = Snake.new(field, field.size / 2 - {field.size.x / 6, 0}, $snake_textures[0])
-snake2 = Snake.new(field, field.size / 2 + {field.size.x / 6, 0}, $snake_textures[1])
-field.add snake1
-field.add snake2
+background = SF::RectangleShape.new()
+background.texture = $grass_texture
+background.size = window.size
+background.texture_rect = SF.int_rect(0, 0, window.size.x, window.size.y)
 
-scale = 1
-
-
-transform = SF::Transform::Identity
-transform.scale scale, scale
-
-states = SF.render_states(transform: transform)
 
 clock = SF::Clock.new
 
@@ -298,14 +201,14 @@ while window.open?
   snake1.right = SF::Keyboard.is_key_pressed(SF::Keyboard::D)
   snake2.left = SF::Keyboard.is_key_pressed(SF::Keyboard::Left)
   snake2.right = SF::Keyboard.is_key_pressed(SF::Keyboard::Right)
-  field.step(clock.restart.as_seconds)
   
-  background = SF::RectangleShape.new()
-  background.texture = $grass_texture
-  background.size = field.size
-  background.texture_rect = SF.int_rect(0, 0, field.size.x, field.size.y)
-  window.draw background, states
-  window.draw field, states
+  dt = clock.restart.as_seconds
+  snakes.each &.step(dt)
+  
+  window.draw background
+  snakes.each do |s|
+    window.draw s
+  end
   
   window.display()
 end
