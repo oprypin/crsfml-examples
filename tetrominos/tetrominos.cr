@@ -42,9 +42,9 @@ Parts = [
 
 class Part
   def initialize(@field)
-    parts, color = Parts[rand(Parts.length)]
-    height = parts.lines.length
-    count = parts.split.length / height
+    parts, color = Parts[rand(Parts.size)]
+    height = parts.lines.size
+    count = parts.split.size / height
     @states = Array.new(count) { [] of Array(SF::Color?) }
     parts.split.each_with_index do |part, i|
       @states[i % count].push part.chars.map { |c| color if c == '#'}
@@ -54,7 +54,9 @@ class Part
     @x = (@field.width - width) / 2
     
     @y = -height
-    @y += 1 while collides? == :invalid
+    while collides? == :invalid
+      @y += 1
+    end
   end
   
   getter x
@@ -64,10 +66,10 @@ class Part
     @states[@state]
   end
   def width
-    body[0].length
+    body[0].size
   end
   def height
-    body.length
+    body.size
   end
   
   def each_with_pos
@@ -111,12 +113,12 @@ class Part
     out
   end
   def cw
-    @state = (@state + 1) % @states.length
+    @state = (@state + 1) % @states.size
     ccw if out = collides?
     out
   end
   def ccw
-    @state = (@state - 1) % @states.length
+    @state = (@state - 1) % @states.size
     cw if out = collides?
     out
   end
@@ -193,7 +195,7 @@ class Field
   
   def lines
     @body.reject! { |line| line.all? { |b| b } }
-    while @body.length < height
+    while @body.size < height
       @body.insert(0, Array(SF::Color?).new 10, nil)
     end
   end

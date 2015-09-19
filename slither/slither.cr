@@ -71,9 +71,9 @@ class Snake
   @speed = 0
   @direction = 0.0
   
-  def initialize(start, @texture, @length=1200.0, @thickness=70.0, @max_speed=350.0, @max_turn_rate=4.5, @friction=0.9, @turn_penalty=0.7)
+  def initialize(start, @texture, @size=1200.0, @thickness=70.0, @max_speed=350.0, @max_turn_rate=4.5, @friction=0.9, @turn_penalty=0.7)
     @body = Deque(SF::Vector2(Float64)).new
-    (0...(@length / DENSITY).to_i).each do |i|
+    (0...(@size / DENSITY).to_i).each do |i|
       @body.push(start + {0, i * DENSITY})
     end
   end
@@ -118,14 +118,14 @@ class Snake
     ib = ia + draw_rate
     ic = ib + draw_rate
     isplit = 0
-    while ic < @body.length
+    while ic < @body.size
       a, b, c = @body[ia], @body[ib], @body[ic]
       
       head = @thickness*4
       if ia / DENSITY <= head
         th = @thickness * (ia/(head/2))**0.3
       else
-        x = ib.fdiv(@body.length-1-draw_rate)
+        x = ib.fdiv(@body.size-1-draw_rate)
         th = @thickness * 0.008 * Math.sqrt(7198 + 39750*x - 46875*x*x)
       end
       o1 = orthogonal(a, b, th / 2)
@@ -140,7 +140,7 @@ class Snake
         eyes_angle = Math.atan2(o1.y, o1.x)
       end
       
-      delta = Math.max(Math.min(draw_rate, @body.length-1 - ic), 1)
+      delta = Math.max(Math.min(draw_rate, @body.size-1 - ic), 1)
       ia += delta
       ib += delta
       ic += delta

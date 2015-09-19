@@ -81,7 +81,7 @@ class Tile
       
       # Adjust for wide numbers
       size = 0.45
-      l = value.to_s.length
+      l = value.to_s.size
       while l > 2
         size *= 0.8
         l -= 1
@@ -129,7 +129,7 @@ class Game2048
   
   def spawn_tile
     empties = @all_coords.reject { |p| @grid.has_key? p }
-    pos = empties[rand(empties.length)]
+    pos = empties[rand(empties.size)]
     # 1/10 chance to spawn a 4
     @grid[pos] = Tile.new(rand(10) == 0 ? 4 : 2, SF.vector2(pos))
     # Note how we use `pos` twice for grid-coordinates and animation-coordinates
@@ -328,7 +328,7 @@ class Game2048
   
   def is_game_over
     # Game is not over if there are empty slots
-    return false if @grid.length < @size*@size
+    return false if @grid.size < @size*@size
     # Game is not over if there are neighbors with equal values
     @grid.each do |p, tile|
       x, y = p
