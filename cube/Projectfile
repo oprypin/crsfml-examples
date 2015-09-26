@@ -1,4 +1,0 @@
-deps do
-  github "BlaXpirit/crsfml"
-  github "BlaXpirit/crystal-raw-gl", name: "gl"
-end

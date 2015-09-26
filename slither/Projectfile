@@ -1,4 +1,0 @@
-deps do
-  github "BlaXpirit/crsfml"
-# github "BlaXpirit/deque" # Included in Crystal 0.7.7
-end

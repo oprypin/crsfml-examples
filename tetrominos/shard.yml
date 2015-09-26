@@ -1,0 +1,5 @@
+name: tetrominos
+
+dependencies:
+  crsfml:
+    github: blaxpirit/crsfml

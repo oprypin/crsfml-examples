@@ -1,0 +1,5 @@
+name: minesweeper
+
+dependencies:
+  crsfml:
+    github: blaxpirit/crsfml

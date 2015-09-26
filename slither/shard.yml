@@ -1,0 +1,5 @@
+name: slither
+
+dependencies:
+  crsfml:
+    github: blaxpirit/crsfml

@@ -1,0 +1,7 @@
+name: cube
+
+dependencies:
+  crsfml:
+    github: blaxpirit/crsfml
+  gl:
+    github: blaxpirit/crystal-raw-gl

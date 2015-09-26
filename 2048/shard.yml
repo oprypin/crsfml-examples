@@ -1,0 +1,5 @@
+name: 2048
+
+dependencies:
+  crsfml:
+    github: blaxpirit/crsfml
