@@ -32,7 +32,7 @@ struct SF::Vector2
     Math.sqrt(x**2 + y**2)
   end
   
-  def dot(other: self)
+  def dot(other : self)
     x*other.x + y*other.y
   end
 end
