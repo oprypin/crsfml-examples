@@ -341,7 +341,7 @@ end
 
 window = SF::RenderWindow.new(
   SF.video_mode(1000, 1000), "2048",
-  settings: SF.context_settings(32, antialiasing: 8)
+  settings: SF.context_settings(depth: 24, antialiasing: 8)
 )
 window.framerate_limit = 60
 
