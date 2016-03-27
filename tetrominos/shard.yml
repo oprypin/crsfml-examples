@@ -1,5 +1,8 @@
 name: tetrominos
+version: 1.0.0
 
 dependencies:
   crsfml:
     github: blaxpirit/crsfml
+  matrix:
+    github: Exilor/Matrix
