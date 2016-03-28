@@ -180,7 +180,7 @@ class Game2048
         
         when SF::Event::Resized
           # Prevent stretching, to make custom adaptive stretching.
-          window.view = SF::View.from_rect(SF.float_rect(0, 0, event.width, event.height))
+          window.view = SF::View.from_rect(SF.float_rect(0, 0, event.size.width, event.size.height))
         
         when SF::Event::KeyPressed
           return if event.key.code == SF::Keyboard::Escape
@@ -192,8 +192,8 @@ class Game2048
             SF::Keyboard::Down => {0, 1},  SF::Keyboard::S => {0, 1},
           }
           
-          if deltas.has_key? event.code
-            dx, dy = deltas[event.code]
+          if deltas.has_key? event.key.code
+            dx, dy = deltas[event.key.code]
             
             # The destinations of all tiles that are to be moved.
             # We don't need to store the source positions because that's the tile's screen-coordinates.

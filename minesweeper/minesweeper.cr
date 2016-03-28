@@ -148,9 +148,9 @@ while window.open?
     when SF::Event::Closed
       window.close
     when SF::Event::MouseButtonPressed
-      coord = {(event.x / scale).to_i, (event.y / scale).to_i}
-      field.check coord if event.button == SF::Mouse::Left
-      field.flag coord if event.button == SF::Mouse::Right
+      coord = {(event.mouse_button.x / scale).to_i, (event.mouse_button.y / scale).to_i}
+      field.check coord if event.mouse_button.button == SF::Mouse::Left
+      field.flag coord if event.mouse_button.button == SF::Mouse::Right
     end
   end
   
