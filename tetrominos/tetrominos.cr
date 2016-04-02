@@ -1,4 +1,5 @@
 require "crsfml"
+require "./utils"
 
 
 Parts = [
@@ -6,36 +7,36 @@ Parts = [
     #### -#--
     ---- -#--
     ---- -#--",
-    SF.color(255, 133, 27) # Orange
+    SF.color(0x80BE1Fffu32) # Green
   },
   {"##
     ##",
-    SF.color(242, 89, 75) # Red
+    SF.color(0x1EA7E1ffu32) # Blue
   },
   {"--- -#- -#- -#-
     ### ##- ### -##
     -#- -#- --- -#-",
-    SF.color(255, 220, 0) # Yellow
+    SF.color(0xDDDDDDffu32) # Grey
   },
   {"--- -#- #-- -##
     ### -#- ### -#-
     --# ##- --- -#-",
-    SF.color(133, 20, 75) # Purple
+    SF.color(0xC83E3Effu32) # Red
   },
   {"--- ##- --# -#-
     ### -#- ### -#-
     #-- -#- --- -##",
-    SF.color(0, 116, 217) # Blue
+    SF.color(0xFF99CCffu32) # Pink
   },
   {"--- #--
     -## ##-
     ##- -#-",
-    SF.color(127, 219, 255) # Cyan
+    SF.color(0xE86A17ffu32) # Orange
   },
   {"--- --#
     ##- -##
     -## -#-",
-    SF.color(46, 204, 64) # Green
+    SF.color(0xFFCC00ffu32) # Yellow
   },
 ]
 
@@ -124,7 +125,7 @@ class Part
   end
   
   def draw(target, states)
-    rect = SF::RectangleShape.new({1, 1})
+    rect = BlockShape.new({1, 1})
     each_with_pos do |b, p|
       rect.fill_color = b
       rect.position = p
@@ -184,7 +185,7 @@ class Field
   end
   
   def draw(target, states)
-    rect = SF::RectangleShape.new({1, 1})
+    rect = BlockShape.new({1, 1})
     each_with_pos do |b, p|
       rect.fill_color = b
       rect.position = p
@@ -208,10 +209,10 @@ end
 
 field = Field.new
 
-scale = 20
+scale = 40
 
 window = SF::RenderWindow.new(
-  SF.video_mode(field.width*scale, field.height*scale), "Tetrominos"
+  SF.video_mode(field.width*scale, field.height*scale), "Tetrominos",
 )
 window.vertical_sync_enabled = true
 
