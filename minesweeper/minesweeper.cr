@@ -1,8 +1,8 @@
 require "crsfml"
 
 
-$tiles_texture = SF::Texture.from_file("resources/tiles.png")
-$digits_texture = SF::Texture.from_file("resources/digits.png")
+$tiles_texture : SF::Texture = SF::Texture.from_file("resources/tiles.png")
+$digits_texture : SF::Texture = SF::Texture.from_file("resources/digits.png")
 
 
 class Minefield
@@ -107,7 +107,7 @@ class Minefield
           )
           
           border = 2 /9.0
-          if (val || 0) > 0
+          if val && val > 0
             digits_array.append SF.vertex(
               position: {x+border+dx*(1-border*2), y+border+dy*(1-border*2)},
               tex_coords: {(val+dx)*5, dy*5}

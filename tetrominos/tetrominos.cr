@@ -41,12 +41,18 @@ Parts = [
 ]
 
 
+alias Matrix = Array(Array(SF::Color?))
+
+
 class Part
-  def initialize(@field)
+  @x : Int32
+  @y : Int32
+
+  def initialize(@field : Field)
     parts, color = Parts[rand(Parts.size)]
     height = parts.lines.size
     count = parts.split.size / height
-    @states = Array.new(count) { [] of Array(SF::Color?) }
+    @states = Array(Matrix).new(count) { [] of Array(SF::Color?) }
     parts.split.each_with_index do |part, i|
       @states[i % count].push part.chars.map { |c| color if c == '#'}
     end
@@ -135,9 +141,9 @@ class Part
 end
 
 class Field
-  def initialize(@width=10, @height=20)
+  def initialize(@width = 10, @height = 20)
     @clock = SF::Clock.new
-    @body = Array.new(20) { Array(SF::Color?).new(10, nil) }
+    @body = Matrix.new(20) { Array(SF::Color?).new(10, nil) }
     @over = false
     @part = nil
     @interval = 1

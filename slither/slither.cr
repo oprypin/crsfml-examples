@@ -17,14 +17,14 @@
 require "deque"
 require "crsfml"
 
-$snake_textures = ["resources/texture1.png", "resources/texture2.jpg"].map do |fn|
+snake_textures = ["resources/texture1.png", "resources/texture2.jpg"].map do |fn|
   t = SF::Texture.from_file(fn)
   t.smooth = true
   t
 end
 
-$grass_texture = SF::Texture.from_file("resources/grass.jpg")
-$grass_texture.repeated = true
+grass_texture = SF::Texture.from_file("resources/grass.jpg")
+grass_texture.repeated = true
 
 
 struct SF::Vector2
@@ -60,19 +60,18 @@ end
 
 
 class Snake
-  DENSITY = 0.5
+  DENSITY = 0.5f32
   getter body
-  property speed
-  property left
-  property right
-  @dt = 0.0
-  @left = false
-  @right = false
-  @speed = 0
-  @direction = 0.0
+  property speed = 0.0f32
+  property left = false
+  property right = false
+  @dt = 0.0f32
+  @direction = 0.0f32
   
-  def initialize(start, @texture, @size=1200.0, @thickness=70.0, @max_speed=350.0, @max_turn_rate=4.5, @friction=0.9, @turn_penalty=0.7)
-    @body = Deque(SF::Vector2(Float64)).new
+  def initialize(start, @texture : SF::Texture,
+                 @size = 1200.0f32, @thickness = 70.0f32, @max_speed = 350.0f32,
+                 @max_turn_rate = 4.5f32, @friction = 0.9f32, @turn_penalty = 0.7f32)
+    @body = Deque(SF::Vector2(Float32)).new
     (0...(@size / DENSITY).to_i).each do |i|
       @body.push(start + {0, i * DENSITY})
     end
@@ -177,12 +176,12 @@ window = SF::RenderWindow.new(
 window.vertical_sync_enabled = true
 
 
-snake1 = Snake.new(window.size / 2 - {window.size.x / 6, 0}, $snake_textures[0])
-snake2 = Snake.new(window.size / 2 + {window.size.x / 6, 0}, $snake_textures[1])
+snake1 = Snake.new(window.size / 2 - {window.size.x / 6, 0}, snake_textures[0])
+snake2 = Snake.new(window.size / 2 + {window.size.x / 6, 0}, snake_textures[1])
 snakes = [snake1, snake2]
 
 background = SF::RectangleShape.new()
-background.texture = $grass_texture
+background.texture = grass_texture
 background.size = window.size
 background.texture_rect = SF.int_rect(0, 0, window.size.x, window.size.y)
 
