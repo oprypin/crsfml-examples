@@ -10,7 +10,7 @@ macro event_property(name, code)
 end
 
 class RoundedRectangleShape < SF::ConvexShape
-  def initialize(@size : SF::Vector2, @radius : Number, @corner_points : Int = 5)
+  def initialize(@size : SF::Vector2(Float64), @radius : Float64, @corner_points : Int32 = 5)
     super()
     update
   end

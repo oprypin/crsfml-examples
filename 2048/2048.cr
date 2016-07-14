@@ -38,13 +38,14 @@ end
 class Tile
   include SF::TransformableM
   
-  def initialize(@value, position)
+  def initialize(@value : Int32, position)
     @rectangle = RoundedRectangleShape.new(SF.vector2(0.9, 0.9), 0.05)
     @rectangle.origin = {0.45, 0.45}
     self.position = position
     # The tile is initially small, will be enlarged
     self.scale = {0, 0}
   end
+  @text_height : Float32?
   
   def value
     @value
