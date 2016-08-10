@@ -56,19 +56,19 @@ class Part
     parts.split.each_with_index do |part, i|
       @states[i % count].push part.chars.map { |c| color if c == '#'}
     end
-    
+
     @state = 0
     @x = (@field.width - width) / 2
-    
+
     @y = -height
     while collides? == :invalid
       @y += 1
     end
   end
-  
+
   getter x
   getter y
-  
+
   def body
     @states[@state]
   end
@@ -78,7 +78,7 @@ class Part
   def height
     body.size
   end
-  
+
   def each_with_pos
     body.each_with_index do |line, y|
       line.each_with_index do |b, x|
@@ -87,7 +87,7 @@ class Part
       end
     end
   end
-  
+
   def collides?
     each_with_pos do |b, p|
       return :invalid if p.x < 0 || p.x >= @field.width || p.y < 0
@@ -97,12 +97,12 @@ class Part
     end
     false
   end
-  
+
   def [](p)
     x, y = p
     body[y][x]
   end
-  
+
   def left
     @x -= 1
     right if out = collides?
@@ -129,7 +129,7 @@ class Part
     cw if out = collides?
     out
   end
-  
+
   def draw(target, states)
     rect = BlockShape.new({1, 1})
     each_with_pos do |b, p|
@@ -149,18 +149,18 @@ class Field
     @interval = 1
     step
   end
-  
+
   getter width
   getter height
   getter part
   property interval
   getter over
-  
+
   def [](p)
     x, y = p
     @body[y][x]
   end
-  
+
   def each_with_pos
     @body.each_with_index do |line, y|
       line.each_with_index do |b, x|
@@ -169,7 +169,7 @@ class Field
       end
     end
   end
-  
+
   def step
     @clock.restart
     if part = @part
@@ -189,7 +189,7 @@ class Field
     end
     true
   end
-  
+
   def draw(target, states)
     rect = BlockShape.new({1, 1})
     each_with_pos do |b, p|
@@ -199,14 +199,14 @@ class Field
     end
     @part.try &.draw(target, states)
   end
-  
+
   def lines
     @body.reject! { |line| line.all? { |b| b } }
     while @body.size < height
       @body.insert(0, Array(SF::Color?).new 10, nil)
     end
   end
-  
+
   def act
     step if @clock.elapsed_time.as_seconds >= @interval
   end
@@ -249,13 +249,13 @@ while window.open?
       end
     end
   end
-  
+
   field.act
-  
+
   window.close if field.over
-  
+
   window.clear SF::Color::Black
   window.draw field, states
-  
+
   window.display
 end

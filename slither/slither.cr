@@ -31,7 +31,7 @@ struct SF::Vector2
   def length
     Math.sqrt(x**2 + y**2)
   end
-  
+
   def dot(other : self)
     x*other.x + y*other.y
   end
@@ -67,7 +67,7 @@ class Snake
   property right = false
   @dt = 0.0f32
   @direction = 0.0f32
-  
+
   def initialize(start, @texture : SF::Texture,
                  @size = 1200.0f32, @thickness = 70.0f32, @max_speed = 350.0f32,
                  @max_turn_rate = 4.5f32, @friction = 0.9f32, @turn_penalty = 0.7f32)
@@ -76,7 +76,7 @@ class Snake
       @body.push(start + {0, i * DENSITY})
     end
   end
-  
+
   def step(dt)
     if left ^ right
       @speed += @max_speed * dt
@@ -84,11 +84,11 @@ class Snake
     else
       @speed *= (1 - @friction) ** dt
     end
-    
+
     turn_rate = @max_turn_rate * (@speed / @max_speed) ** (1 / (1 - @turn_penalty))
     @direction += turn_rate * dt if right
     @direction -= turn_rate * dt if left
-    
+
     acc_dt = dt + @dt  # Add the extra time saved from the previous step
     dist = acc_dt * @speed
     steps = (dist / DENSITY).to_i
@@ -103,13 +103,13 @@ class Snake
       @body.pop()
     end
   end
-  
+
   def draw(target, states)
     va = [] of SF::Vertex
-    
+
     states.texture = @texture
     sz = @texture.size
-    
+
     k = 10
     splits = (k * sz.y / sz.x).to_i
     draw_rate = (@thickness / DENSITY / k).to_i
@@ -119,7 +119,7 @@ class Snake
     isplit = 0
     while ic < @body.size
       a, b, c = @body[ia], @body[ib], @body[ic]
-      
+
       head = @thickness*4
       if ia / DENSITY <= head
         th = @thickness * (ia/(head/2))**0.3
@@ -129,7 +129,7 @@ class Snake
       end
       o1 = orthogonal(a, b, th / 2)
       o2 = orthogonal(b, c, th / 2)
-      
+
       ty = sz.y*isplit.abs/splits
       va << SF.vertex(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, ty})
       va << SF.vertex(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, ty})
@@ -138,15 +138,15 @@ class Snake
         eyes = [b+o1*0.75, b-o1*0.75]
         eyes_angle = Math.atan2(o1.y, o1.x)
       end
-      
+
       delta = Math.max(Math.min(draw_rate, @body.size-1 - ic), 1)
       ia += delta
       ib += delta
       ic += delta
-      
+
       isplit = (isplit + 1 + splits) % (splits + splits) - splits
     end
-    
+
     va.reverse!
     target.draw va, SF::TrianglesStrip, states
 
@@ -161,7 +161,7 @@ class Snake
     eyes.not_nil!.each do |p|
       eye.position = p
       pupil.position = p
-      
+
       target.draw eye, states
       target.draw pupil, states
     end
@@ -195,19 +195,19 @@ while window.open?
       window.close()
     end
   end
-  
+
   snake1.left = SF::Keyboard.is_key_pressed(SF::Keyboard::A)
   snake1.right = SF::Keyboard.is_key_pressed(SF::Keyboard::D)
   snake2.left = SF::Keyboard.is_key_pressed(SF::Keyboard::Left)
   snake2.right = SF::Keyboard.is_key_pressed(SF::Keyboard::Right)
-  
+
   dt = clock.restart.as_seconds
   snakes.each &.step(dt)
-  
+
   window.draw background
   snakes.each do |s|
     window.draw s
   end
-  
+
   window.display()
 end

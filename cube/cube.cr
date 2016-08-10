@@ -65,7 +65,7 @@ while window.open?
   elsif SF::Keyboard.is_key_pressed SF::Keyboard::Down
     speed_y = -MAX_SPEED if zero?(speed_x) && speed_y <= 0
   end
-  
+
   if !zero?(speed_x)
     speed_x = Math.copysign(Math.max(speed_x.abs*0.95, MIN_SPEED), speed_x)
     x += speed_x
@@ -87,15 +87,15 @@ while window.open?
       cube.move_up
     end
   end
-  
+
   window.clear SF::Color::Black
   GL.clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT)
   GL.load_identity
-  
+
   GL.rotated(20.0, -1.0, -1.0, -0.1)
   GL.rotated(y, 1.0, 0.0, 0.0)
   GL.rotated(x, 0.0, 1.0, 0.0)
-  
+
   d = SIZE / 2
   GL.begin_ GL::QUADS
     gl_color(cube.front);  GL.vertex3d( d, -d,  d); GL.vertex3d( d,  d,  d); GL.vertex3d(-d,  d,  d); GL.vertex3d(-d, -d,  d);

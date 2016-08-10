@@ -14,19 +14,19 @@ class RoundedRectangleShape < SF::ConvexShape
     super()
     update
   end
-  
+
   event_property size, update
   event_property radius, update
   event_property corner_points, update
-  
+
   def update
     self.point_count = corner_points*4
-    
+
     centers = [
       {size.x - radius, radius}, {radius, radius},
       {radius, size.y - radius}, {size.x - radius, size.y - radius}
     ]
-    
+
     (0...point_count).each do |index|
       center_index = index / corner_points
       angle = (index - center_index) * Math::PI / 2 / (corner_points - 1)

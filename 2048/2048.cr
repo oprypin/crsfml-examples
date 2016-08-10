@@ -37,7 +37,7 @@ end
 
 class Tile
   include SF::TransformableM
-  
+
   def initialize(@value : Int32, position)
     @rectangle = RoundedRectangleShape.new(SF.vector2(0.9, 0.9), 0.05)
     @rectangle.origin = {0.45, 0.45}
@@ -46,7 +46,7 @@ class Tile
     self.scale = {0, 0}
   end
   @text_height : Float32?
-  
+
   def value
     @value
   end
@@ -57,7 +57,7 @@ class Tile
     # Reset cached Text
     @text_height = nil
   end
-  
+
   def draw(g, states)
     # Gradually return to normal scale
     if scale.y < 1
@@ -67,9 +67,9 @@ class Tile
       sc = {scale.y - 0.025, 1}.max
       self.scale = {sc, sc}
     end
-    
+
     states.transform *= transform
-    
+
     # Coordinates are scaled grid size/window size.
     # We can't use a font of height 1 pixel, because then it would be just a big blur
     # So we find out the real screen-coordinates height of the tile,
@@ -79,7 +79,7 @@ class Tile
       # Recreate the text object only when necessary (window was resized
       # or cache was otherwise reset: `@text_height = nil`)
       @text_height = h
-      
+
       # Adjust for wide numbers
       size = 0.45
       l = value.to_s.size
@@ -93,10 +93,10 @@ class Tile
       text.origin = text.local_bounds.size * {0.53, 0.83}
       # Scaling down as mentioned
       text.scale({1.0/h, 1.0/h})
-    
+
       text.color, @rectangle.fill_color = TILE_COLORS.fetch(value, TILE_COLORS[0])
     end
-    
+
     g.draw @rectangle, states
     g.draw @text.not_nil!, states
   end
@@ -105,29 +105,29 @@ end
 class Game2048
   def initialize(@size=4)
     @pts = 0
-    
+
     @grid = {} of {Int32, Int32} => Tile
     # Position -> Tile
     # Note that a tile has 2 positions: its coordinates in the grid affect the logic, and
     # the .position is the current on-screen coordinates (it differs during animations)
-    
+
     @extra = [] of Tile # Leftover tiles that are in the process of being merged onto
-    
+
     @all_coords = [] of {Int32, Int32}
     (0...@size).each do |y|
       (0...@size).each do |x|
         @all_coords << {x, y}
       end
     end
-    
+
     @empty = RoundedRectangleShape.new(SF.vector2(0.9, 0.9), 0.05)
     @empty.fill_color = EMPTY_COLOR
     @empty.origin = {0.45, 0.45}
-    
+
     spawn_tile
     spawn_tile
   end
-  
+
   def spawn_tile
     empties = @all_coords.reject { |p| @grid.has_key? p }
     pos = empties[rand(empties.size)]
@@ -135,13 +135,13 @@ class Game2048
     @grid[pos] = Tile.new(rand(10) == 0 ? 4 : 2, SF.vector2(pos))
     # Note how we use `pos` twice for grid-coordinates and animation-coordinates
   end
-  
+
   def draw(window, states)
     m = {window.size.x, window.size.y}.min
     scale = m / (@size+0.1)
-    
+
     window.clear BG_COLOR
-    
+
     states.transform = states.transform
       # Position the field in the center of the window,
       # adding horizontal or vertical borders if the window is not square
@@ -151,12 +151,12 @@ class Game2048
       # Adjust by 0.5 because tiles have (0, 0) in their center
       # and by 0.05 for border
       .translate({0.55, 0.55})
-    
+
     @all_coords.each do |p|
       @empty.position = p
       window.draw @empty, states
     end
-    
+
     @grid.each do |p, tile|
       window.draw tile, states
     end
@@ -165,44 +165,44 @@ class Game2048
       window.draw tile, states
     end
   end
-  
+
   def frame(window)
     window.clear
     window.draw self
     window.display
   end
-  
+
   def run(window)
     loop do
       while event = window.poll_event
         case event.type
         when SF::Event::Closed
           return
-        
+
         when SF::Event::Resized
           # Prevent stretching, to make custom adaptive stretching.
           window.view = SF::View.from_rect(SF.float_rect(0, 0, event.size.width, event.size.height))
-        
+
         when SF::Event::KeyPressed
           return if event.key.code == SF::Keyboard::Escape
-          
+
           deltas = {
             SF::Keyboard::Right => {1, 0}, SF::Keyboard::D => {1, 0},
             SF::Keyboard::Left => {-1, 0}, SF::Keyboard::A => {-1, 0},
             SF::Keyboard::Up => {0, -1},   SF::Keyboard::W => {0, -1},
             SF::Keyboard::Down => {0, 1},  SF::Keyboard::S => {0, 1},
           }
-          
+
           if deltas.has_key? event.key.code
             dx, dy = deltas[event.key.code]
-            
+
             # The destinations of all tiles that are to be moved.
             # We don't need to store the source positions because that's the tile's screen-coordinates.
             to_move = {} of Tile => {Int32, Int32}
-            
+
             # All tiles that have already participated in a merge, so they can't merge anymore.
             merged = Set(Tile).new
-            
+
             # The following code chooses the order in which the tiles will be traversed.
             # Ex.: when the "right" direction is pressed, the order is the following:
             #   09 05 01 --
@@ -219,20 +219,20 @@ class Game2048
               aa = (1...@size).to_a
             end
             bb = (0..@size-1).to_a
-            
+
             loop do  # Keep checking all tiles and trying to move them until no tiles have moved
               any_moved = false
-              
+
               aa.product(bb) do |a, b|
                 # The mentioned transpose
                 x, y = (dx != 0 ? {a, b} : {b, a})
-                
+
                 # Can we move this tile?
                 move = false
-                
+
                 this = @grid[{x, y}]?
                 next unless this
-                
+
                 # The tile we will be trying to move onto
                 nxt = @grid[{x+dx, y+dy}]?
                 if nxt
@@ -252,25 +252,25 @@ class Game2048
                   # Grid-coordinates will be updated accordingly, but screen-coordinates
                   # still keep the original location.
                   to_move[this] = {x+dx, y+dy}
-                  
+
                   # Move from here to the neighboring slot.
                   # possibly overwriting a tile (which was saved to @extra previously).
                   @grid.delete({x, y})
                   @grid[{x+dx, y+dy}] = this
-                  
+
                   # We move the tile on grid in each iteration, but even though it may have
                   # been moved multiple times, its screen-coordinates still contain the
                   # original location. Long movements' animation has the same duration
                   # as 1-tile movements.
-                  
+
                   # All tiles will be traversed again
                   any_moved = true
                 end
               end
-              
+
               break unless any_moved
             end
-            
+
             unless to_move.empty?
               n = @size+1 # animation happens in n frames
               start_positions = to_move.keys.map { |tile| {tile, tile.position} } .to_h
@@ -284,37 +284,37 @@ class Game2048
                 frame(window)
               end
             end
-            
+
             # Forget merged tiles
             @extra.clear
-            
+
             merged.each do |tile|
               tile.value *= 2
               @pts += tile.value
             end
-            
+
             # `to_move.empty` means nothing moved, so an invalid move
             spawn_tile unless to_move.empty?
-            
+
             if is_game_over
               window.draw self
-              
+
               rect = SF::RectangleShape.new(window.size)
               rect.fill_color = SF.color(255, 255, 255, 100)
               window.draw rect
-              
+
               text = SF::Text.new("Game over!", $font, 100)
               text.origin = text.local_bounds.size / 2
               text.position = window.size / 2 + {0, -75}
               text.color = SF::Color::Black
               window.draw text
-              
+
               text = SF::Text.new("#{@pts} pts", $font, 100)
               text.origin = text.local_bounds.size / 2
               text.position = window.size / 2 + {0, 75}
               text.color = SF::Color::Black
               window.draw text
-              
+
               window.display
               SF.sleep SF.seconds(3)
               return
@@ -322,11 +322,11 @@ class Game2048
           end
         end
       end
-      
+
       frame(window)
     end
   end
-  
+
   def is_game_over
     # Game is not over if there are empty slots
     return false if @grid.size < @size*@size

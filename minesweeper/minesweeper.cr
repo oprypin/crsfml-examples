@@ -10,7 +10,7 @@ class Minefield
   Mine = -2
   MineNotFound = -3
   MineError = -4
-  
+
   def initialize(@width=8, @height=8, @mine_count=10)
     @mines = Set({Int32, Int32}).new
     @display = {} of {Int32, Int32} => Int32
@@ -31,7 +31,7 @@ class Minefield
       to_plant -= 1
     end
   end
-  
+
   def check(xy)
     x, y = xy
     return nil if @display.has_key? xy
@@ -71,7 +71,7 @@ class Minefield
     end
     true
   end
-  
+
   def flag(xy)
     x, y = xy
     if !@display.has_key? xy
@@ -82,30 +82,30 @@ class Minefield
       false
     end
   end
-  
+
   def draw(target, states)
     tiles_array = SF::VertexArray.new(SF::Quads, @width*@height*4)
     digits_array = SF::VertexArray.new(SF::Quads)
-    
+
     (0...@height).each do |y|
       (0...@width).each do |x|
         offset = y + x*width
-        
+
         begin
           val = @display[{x, y}]
           tile_number = val >= 0 ? 0 : 1-val
         rescue
           tile_number = 1
         end
-        
+
         [{0, 0}, {1, 0}, {1, 1}, {0, 1}].each_with_index do |d, di|
           dx, dy = d
-          
+
           tiles_array[offset*4 + di] = SF.vertex(
             position: {x+dx, y+dy},
             tex_coords: {(tile_number+dx)*9, dy*9}
           )
-          
+
           border = 2 /9.0
           if val && val > 0
             digits_array.append SF.vertex(
@@ -116,7 +116,7 @@ class Minefield
         end
       end
     end
-    
+
     states.texture = $tiles_texture
     target.draw tiles_array, states
     states.texture = $digits_texture
@@ -153,10 +153,10 @@ while window.open?
       field.flag coord if event.mouse_button.button == SF::Mouse::Right
     end
   end
-  
+
   window.clear SF::Color::Black
-  
+
   window.draw field, states
-  
+
   window.display
 end
