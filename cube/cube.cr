@@ -33,7 +33,10 @@ def zero?(x)
   -0.001 < x && x < 0.001
 end
 
-window = SF::RenderWindow.new(SF.video_mode(500, 500), "Cube", settings: SF.context_settings(depth: 24, antialiasing: 8))
+window = SF::RenderWindow.new(
+  SF::VideoMode.new(500, 500), "Cube",
+  settings: SF::ContextSettings.new(depth: 24, antialiasing: 8)
+)
 window.framerate_limit = 60
 
 x = y = 0.0
@@ -48,21 +51,21 @@ GL.enable GL::DEPTH_TEST
 
 while window.open?
   while event = window.poll_event()
-    case event.type
+    case event
     when SF::Event::Resized
-      GL.viewport(0, 0, event.size.width, event.size.height)
+      GL.viewport(0, 0, event.width, event.height)
     when SF::Event::Closed
       window.close()
     end
   end
 
-  if SF::Keyboard.is_key_pressed SF::Keyboard::Left
+  if SF::Keyboard.key_pressed? SF::Keyboard::Left
     speed_x = MAX_SPEED if zero?(speed_y) && speed_x >= 0
-  elsif SF::Keyboard.is_key_pressed SF::Keyboard::Right
+  elsif SF::Keyboard.key_pressed? SF::Keyboard::Right
     speed_x = -MAX_SPEED if zero?(speed_y) && speed_x <= 0
-  elsif SF::Keyboard.is_key_pressed SF::Keyboard::Up
+  elsif SF::Keyboard.key_pressed? SF::Keyboard::Up
     speed_y = MAX_SPEED if zero?(speed_x) && speed_y >= 0
-  elsif SF::Keyboard.is_key_pressed SF::Keyboard::Down
+  elsif SF::Keyboard.key_pressed? SF::Keyboard::Down
     speed_y = -MAX_SPEED if zero?(speed_x) && speed_y <= 0
   end
 

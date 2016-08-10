@@ -7,36 +7,36 @@ Parts = [
     #### -#--
     ---- -#--
     ---- -#--",
-    SF.color(0x80BE1Fffu32) # Green
+    SF::Color.new(0x80BE1Fffu32) # Green
   },
   {"##
     ##",
-    SF.color(0x1EA7E1ffu32) # Blue
+    SF::Color.new(0x1EA7E1ffu32) # Blue
   },
   {"--- -#- -#- -#-
     ### ##- ### -##
     -#- -#- --- -#-",
-    SF.color(0xDDDDDDffu32) # Grey
+    SF::Color.new(0xDDDDDDffu32) # Grey
   },
   {"--- -#- #-- -##
     ### -#- ### -#-
     --# ##- --- -#-",
-    SF.color(0xC83E3Effu32) # Red
+    SF::Color.new(0xC83E3Effu32) # Red
   },
   {"--- ##- --# -#-
     ### -#- ### -#-
     #-- -#- --- -##",
-    SF.color(0xFF99CCffu32) # Pink
+    SF::Color.new(0xFF99CCffu32) # Pink
   },
   {"--- #--
     -## ##-
     ##- -#-",
-    SF.color(0xE86A17ffu32) # Orange
+    SF::Color.new(0xE86A17ffu32) # Orange
   },
   {"--- --#
     ##- -##
     -## -#-",
-    SF.color(0xFFCC00ffu32) # Yellow
+    SF::Color.new(0xFFCC00ffu32) # Yellow
   },
 ]
 
@@ -141,6 +141,8 @@ class Part
 end
 
 class Field
+  include SF::Drawable
+
   def initialize(@width = 10, @height = 20)
     @clock = SF::Clock.new
     @body = Matrix.new(20) { Array(SF::Color?).new(10, nil) }
@@ -218,7 +220,7 @@ field = Field.new
 scale = 40
 
 window = SF::RenderWindow.new(
-  SF.video_mode(field.width*scale, field.height*scale), "Tetrominos",
+  SF::VideoMode.new(field.width*scale, field.height*scale), "Tetrominos",
 )
 window.vertical_sync_enabled = true
 
@@ -226,25 +228,25 @@ window.vertical_sync_enabled = true
 transform = SF::Transform::Identity
 transform.scale(scale, scale)
 
-states = SF.render_states(transform: transform)
+states = SF::RenderStates.new(transform: transform)
 
 
 while window.open?
   while event = window.poll_event
-    if event.type == SF::Event::Closed ||\
-    (event.type == SF::Event::KeyPressed && event.key.code == SF::Keyboard::Escape)
+    if event.is_a?(SF::Event::Closed) ||\
+    (event.is_a?(SF::Event::KeyPressed) && event.code.escape?)
       window.close
-    elsif event.type == SF::Event::KeyPressed
-      case event.key.code
-        when SF::Keyboard::Left, SF::Keyboard::A
+    elsif event.is_a? SF::Event::KeyPressed
+      case event.code
+        when .left?, .a?
           field.part.try { |part| part.left }
-        when SF::Keyboard::Right, SF::Keyboard::D
+        when .right?, .d?
           field.part.try { |part| part.right }
-        when SF::Keyboard::Q
+        when .q?
           field.part.try { |part| part.ccw }
-        when SF::Keyboard::Up, SF::Keyboard::W, SF::Keyboard::E
+        when .up?, .w?, .e?
           field.part.try { |part| part.cw }
-        when SF::Keyboard::Down, SF::Keyboard::S
+        when .down?, .s?
           field.step
       end
     end

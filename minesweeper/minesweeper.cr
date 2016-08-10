@@ -6,6 +6,8 @@ $digits_texture : SF::Texture = SF::Texture.from_file("resources/digits.png")
 
 
 class Minefield
+  include SF::Drawable
+
   Flag = -1
   Mine = -2
   MineNotFound = -3
@@ -101,14 +103,14 @@ class Minefield
         [{0, 0}, {1, 0}, {1, 1}, {0, 1}].each_with_index do |d, di|
           dx, dy = d
 
-          tiles_array[offset*4 + di] = SF.vertex(
+          tiles_array[offset*4 + di] = SF::Vertex.new(
             position: {x+dx, y+dy},
             tex_coords: {(tile_number+dx)*9, dy*9}
           )
 
           border = 2 /9.0
           if val && val > 0
-            digits_array.append SF.vertex(
+            digits_array.append SF::Vertex.new(
               position: {x+border+dx*(1-border*2), y+border+dy*(1-border*2)},
               tex_coords: {(val+dx)*5, dy*5}
             )
@@ -130,7 +132,7 @@ field = Minefield.new
 scale = 100
 
 window = SF::RenderWindow.new(
-  SF.video_mode(field.width*scale, field.height*scale), "Minesweeper"
+  SF::VideoMode.new(field.width*scale, field.height*scale), "Minesweeper"
 )
 window.vertical_sync_enabled = true
 
@@ -138,19 +140,19 @@ window.vertical_sync_enabled = true
 transform = SF::Transform::Identity
 transform.scale(scale, scale)
 
-states = SF.render_states(transform: transform)
+states = SF::RenderStates.new(transform: transform)
 
 
 
 while window.open?
   while event = window.poll_event
-    case event.type
+    case event
     when SF::Event::Closed
       window.close
     when SF::Event::MouseButtonPressed
-      coord = {(event.mouse_button.x / scale).to_i, (event.mouse_button.y / scale).to_i}
-      field.check coord if event.mouse_button.button == SF::Mouse::Left
-      field.flag coord if event.mouse_button.button == SF::Mouse::Right
+      coord = {(event.x / scale).to_i, (event.y / scale).to_i}
+      field.check coord if event.button == SF::Mouse::Left
+      field.flag coord if event.button == SF::Mouse::Right
     end
   end
 

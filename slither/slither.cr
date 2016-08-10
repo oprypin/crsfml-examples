@@ -17,6 +17,7 @@
 require "deque"
 require "crsfml"
 
+
 snake_textures = ["resources/texture1.png", "resources/texture2.jpg"].map do |fn|
   t = SF::Texture.from_file(fn)
   t.smooth = true
@@ -60,6 +61,8 @@ end
 
 
 class Snake
+  include SF::Drawable
+
   DENSITY = 0.5f32
   getter body
   property speed = 0.0f32
@@ -131,8 +134,8 @@ class Snake
       o2 = orthogonal(b, c, th / 2)
 
       ty = sz.y*isplit.abs/splits
-      va << SF.vertex(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, ty})
-      va << SF.vertex(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, ty})
+      va << SF::Vertex.new(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, ty})
+      va << SF::Vertex.new(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, ty})
 
       if ib == draw_rate*6
         eyes = [b+o1*0.75, b-o1*0.75]
@@ -171,7 +174,7 @@ end
 
 window = SF::RenderWindow.new(
   SF::VideoMode.desktop_mode, "Slither",
-  SF::Fullscreen, SF.context_settings(depth: 24, antialiasing: 8)
+  SF::Style::Fullscreen, SF::ContextSettings.new(depth: 24, antialiasing: 8)
 )
 window.vertical_sync_enabled = true
 
@@ -180,9 +183,8 @@ snake1 = Snake.new(window.size / 2 - {window.size.x / 6, 0}, snake_textures[0])
 snake2 = Snake.new(window.size / 2 + {window.size.x / 6, 0}, snake_textures[1])
 snakes = [snake1, snake2]
 
-background = SF::RectangleShape.new()
+background = SF::RectangleShape.new(window.size)
 background.texture = grass_texture
-background.size = window.size
 background.texture_rect = SF.int_rect(0, 0, window.size.x, window.size.y)
 
 
@@ -190,16 +192,17 @@ clock = SF::Clock.new
 
 while window.open?
   while event = window.poll_event()
-    if event.type == SF::Event::Closed ||\
-    (event.type == SF::Event::KeyPressed && event.key.code == SF::Keyboard::Escape)
+    if event.is_a?(SF::Event::Closed) || (
+      event.is_a?(SF::Event::KeyPressed) && event.code.escape?
+    )
       window.close()
     end
   end
 
-  snake1.left = SF::Keyboard.is_key_pressed(SF::Keyboard::A)
-  snake1.right = SF::Keyboard.is_key_pressed(SF::Keyboard::D)
-  snake2.left = SF::Keyboard.is_key_pressed(SF::Keyboard::Left)
-  snake2.right = SF::Keyboard.is_key_pressed(SF::Keyboard::Right)
+  snake1.left = SF::Keyboard.key_pressed?(SF::Keyboard::A)
+  snake1.right = SF::Keyboard.key_pressed?(SF::Keyboard::D)
+  snake2.left = SF::Keyboard.key_pressed?(SF::Keyboard::Left)
+  snake2.right = SF::Keyboard.key_pressed?(SF::Keyboard::Right)
 
   dt = clock.restart.as_seconds
   snakes.each &.step(dt)

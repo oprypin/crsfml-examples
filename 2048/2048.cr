@@ -5,7 +5,7 @@ require "./rounded_rectangle"
 $font = SF::Font.from_file("resources/font/Ubuntu-M.ttf")
 
 def hex_color(s)
-  SF.color(s[0..1].to_i(16), s[2..3].to_i(16), s[4..5].to_i(16))
+  SF::Color.new(s[0..1].to_i(16), s[2..3].to_i(16), s[4..5].to_i(16))
 end
 
 BG_COLOR = hex_color("bbada0")
@@ -28,17 +28,18 @@ TILE_COLORS = "
   .map { |l| {l[0].to_i, {hex_color(l[1]), hex_color(l[2])}} }
   .to_h
 
-struct SF::FloatRect
+struct SF::Rect
   def size
     SF.vector2(width, height)
   end
 end
 
 
-class Tile
-  include SF::TransformableM
+class Tile < SF::Transformable
+  include SF::Drawable
 
   def initialize(@value : Int32, position)
+    super()
     @rectangle = RoundedRectangleShape.new(SF.vector2(0.9, 0.9), 0.05)
     @rectangle.origin = {0.45, 0.45}
     self.position = position
@@ -103,6 +104,8 @@ class Tile
 end
 
 class Game2048
+  include SF::Drawable
+
   def initialize(@size=4)
     @pts = 0
 
@@ -132,7 +135,7 @@ class Game2048
     empties = @all_coords.reject { |p| @grid.has_key? p }
     pos = empties[rand(empties.size)]
     # 1/10 chance to spawn a 4
-    @grid[pos] = Tile.new(rand(10) == 0 ? 4 : 2, SF.vector2(pos))
+    @grid[pos] = Tile.new(rand(10) == 0 ? 4 : 2, pos)
     # Note how we use `pos` twice for grid-coordinates and animation-coordinates
   end
 
@@ -175,16 +178,16 @@ class Game2048
   def run(window)
     loop do
       while event = window.poll_event
-        case event.type
+        case event
         when SF::Event::Closed
           return
 
         when SF::Event::Resized
           # Prevent stretching, to make custom adaptive stretching.
-          window.view = SF::View.from_rect(SF.float_rect(0, 0, event.size.width, event.size.height))
+          window.view = SF::View.new(SF.float_rect(0, 0, event.width, event.height))
 
         when SF::Event::KeyPressed
-          return if event.key.code == SF::Keyboard::Escape
+          return if event.code == SF::Keyboard::Escape
 
           deltas = {
             SF::Keyboard::Right => {1, 0}, SF::Keyboard::D => {1, 0},
@@ -193,8 +196,8 @@ class Game2048
             SF::Keyboard::Down => {0, 1},  SF::Keyboard::S => {0, 1},
           }
 
-          if deltas.has_key? event.key.code
-            dx, dy = deltas[event.key.code]
+          if deltas.has_key? event.code
+            dx, dy = deltas[event.code]
 
             # The destinations of all tiles that are to be moved.
             # We don't need to store the source positions because that's the tile's screen-coordinates.
@@ -277,7 +280,7 @@ class Game2048
               (1..n).each do |i|
                 to_move.each do |tile, destination|
                   # Linear interpolation between two points
-                  tile.position = start_positions[tile]*(1 - i.fdiv n) + SF.vector2(destination)*(i.fdiv n)
+                  tile.position = start_positions[tile]*(1 - i.fdiv n) + SF.vector2(*destination)*(i.fdiv n)
                 end
                 # We actually interrupt the normal flow of the event loop,
                 # drawing frames and waiting for sync, for simplicity.
@@ -341,8 +344,8 @@ class Game2048
 end
 
 window = SF::RenderWindow.new(
-  SF.video_mode(1000, 1000), "2048",
-  settings: SF.context_settings(depth: 24, antialiasing: 8)
+  SF::VideoMode.new(1000, 1000), "2048",
+  settings: SF::ContextSettings.new(depth: 24, antialiasing: 8)
 )
 window.framerate_limit = 60
 
