@@ -1,8 +1,8 @@
 require "crsfml"
 
 
-$tiles_texture : SF::Texture = SF::Texture.from_file("resources/tiles.png")
-$digits_texture : SF::Texture = SF::Texture.from_file("resources/digits.png")
+TILES_TEXTURE = SF::Texture.from_file("resources/tiles.png")
+DIGITS_TEXTURE = SF::Texture.from_file("resources/digits.png")
 
 
 class Minefield
@@ -119,9 +119,9 @@ class Minefield
       end
     end
 
-    states.texture = $tiles_texture
+    states.texture = TILES_TEXTURE
     target.draw tiles_array, states
-    states.texture = $digits_texture
+    states.texture = DIGITS_TEXTURE
     target.draw digits_array, states
   end
 end

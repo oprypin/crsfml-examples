@@ -2,7 +2,7 @@ require "crsfml"
 require "./rounded_rectangle"
 
 
-$font = SF::Font.from_file("resources/font/Ubuntu-M.ttf")
+FONT = SF::Font.from_file("resources/font/Ubuntu-M.ttf")
 
 def hex_color(s)
   SF::Color.new(s[0..1].to_i(16), s[2..3].to_i(16), s[4..5].to_i(16))
@@ -88,7 +88,7 @@ class Tile < SF::Transformable
         size *= 0.8
         l -= 1
       end
-      @text = text = SF::Text.new(value.to_s, $font, (size * h).to_i)
+      @text = text = SF::Text.new(value.to_s, FONT, (size * h).to_i)
       # Center the text. Slightly more to the left because the font is weird.
       # And significantly more to the top because of baseline...
       text.origin = text.local_bounds.size * {0.53, 0.83}
@@ -306,13 +306,13 @@ class Game2048
               rect.fill_color = SF.color(255, 255, 255, 100)
               window.draw rect
 
-              text = SF::Text.new("Game over!", $font, 100)
+              text = SF::Text.new("Game over!", FONT, 100)
               text.origin = text.local_bounds.size / 2
               text.position = window.size / 2 + {0, -75}
               text.color = SF::Color::Black
               window.draw text
 
-              text = SF::Text.new("#{@pts} pts", $font, 100)
+              text = SF::Text.new("#{@pts} pts", FONT, 100)
               text.origin = text.local_bounds.size / 2
               text.position = window.size / 2 + {0, 75}
               text.color = SF::Color::Black
