@@ -88,6 +88,6 @@ def hsl_to_rgb(h : Float, s : Float, l : Float) : {Float64, Float64, Float64}
   q = l < 0.5 ? l * (1 + s) : l + s - l * s
   p = 2 * l - q
   {hue_to_rgb(p, q, h + 1/3.0),
-   hue_to_rgb(p, q, h)
+   hue_to_rgb(p, q, h),
    hue_to_rgb(p, q, h - 1/3.0)}
 end
