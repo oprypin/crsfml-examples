@@ -30,7 +30,7 @@ grass_texture.repeated = true
 
 struct SF::Vector2
   def length
-    Math.sqrt(x**2 + y**2)
+    Math.sqrt(x*x + y*y)
   end
 
   def dot(other : self)
