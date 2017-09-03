@@ -93,9 +93,9 @@ class Tile < SF::Transformable
         l -= 1
       end
       @text = text = SF::Text.new(value.to_s, FONT, (size * h).to_i)
-      # Center the text. Slightly more to the left because the font is weird.
-      # And significantly more to the top because of baseline...
-      text.origin = text.local_bounds.size * {0.53, 0.83}
+      # Center the text
+      bounds = text.local_bounds
+      text.origin = {bounds.left + bounds.width/2, bounds.top + bounds.height/2}
       # Scaling down as mentioned
       text.scale({1.0/h, 1.0/h})
 
