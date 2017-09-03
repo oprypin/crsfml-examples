@@ -28,6 +28,8 @@ TILE_COLORS = "
   .map { |l| {l[0].to_i, {hex_color(l[1]), hex_color(l[2])}} }
   .to_h
 
+ANIMATION_DURATION = SF.milliseconds(85)
+
 struct SF::Rect
   def size
     SF.vector2(width, height)
@@ -59,16 +61,18 @@ class Tile < SF::Transformable
     @text_height = nil
   end
 
-  def draw(g, states)
+  def frame(time)
     # Gradually return to normal scale
     if scale.y < 1
-      sc = {scale.y + 0.2, 1}.min
+      sc = {scale.y + 14 * time.as_seconds, 1}.min
       self.scale = {sc, sc}
     elsif scale.y > 1
-      sc = {scale.y - 0.025, 1}.max
+      sc = {scale.y - 1.5 * time.as_seconds, 1}.max
       self.scale = {sc, sc}
     end
+  end
 
+  def draw(g, states)
     states.transform *= transform
 
     # Coordinates are scaled grid size/window size.
@@ -127,6 +131,8 @@ class Game2048
     @empty.fill_color = EMPTY_COLOR
     @empty.origin = {0.45, 0.45}
 
+    @clock = SF::Clock.new
+
     spawn_tile
     spawn_tile
   end
@@ -160,7 +166,7 @@ class Game2048
       window.draw @empty, states
     end
 
-    @grid.each do |p, tile|
+    @grid.each_value do |tile|
       window.draw tile, states
     end
     # Leftover tiles are drawn on top, so tiles appear to slide under them on merge.
@@ -170,6 +176,11 @@ class Game2048
   end
 
   def frame(window)
+    time = @clock.restart
+    @grid.each_value do |tile|
+      tile.frame(time)
+    end
+
     window.clear
     window.draw self
     window.display
@@ -275,16 +286,19 @@ class Game2048
             end
 
             unless to_move.empty?
-              n = @size+1 # animation happens in n frames
+              clock = SF::Clock.new
               start_positions = to_move.keys.map { |tile| {tile, tile.position} } .to_h
-              (1..n).each do |i|
+              loop do
+                elapsed = clock.elapsed_time
                 to_move.each do |tile, destination|
                   # Linear interpolation between two points
-                  tile.position = start_positions[tile]*(1 - i.fdiv n) + SF.vector2(*destination)*(i.fdiv n)
+                  ratio = {elapsed / ANIMATION_DURATION, 1}.min
+                  tile.position = start_positions[tile] * (1 - ratio) + SF.vector2(*destination) * ratio
                 end
                 # We actually interrupt the normal flow of the event loop,
                 # drawing frames and waiting for sync, for simplicity.
                 frame(window)
+                break if elapsed >= ANIMATION_DURATION
               end
             end
 
@@ -347,7 +361,7 @@ window = SF::RenderWindow.new(
   SF::VideoMode.new(1000, 1000), "2048",
   settings: SF::ContextSettings.new(depth: 24, antialiasing: 8)
 )
-window.framerate_limit = 60
+window.vertical_sync_enabled = true
 
 Game2048.new.run(window)
 
