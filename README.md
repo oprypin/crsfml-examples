@@ -1,4 +1,4 @@
-<h1><a href="https://github.com/BlaXpirit/crsfml">CrSFML</a> Examples</h1>
+<h1><a href="https://github.com/oprypin/crsfml">CrSFML</a> Examples</h1>
 
 <table><tr>
   <td>
