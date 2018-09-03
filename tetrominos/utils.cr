@@ -6,6 +6,11 @@ class BlockShape < SF::RectangleShape
   # Cache of darkened/lightened color sets
   @@colors = {} of SF::Color => Array(SF::Color)
 
+  def initialize(color : SF::Color, size : SF::Vector2|Tuple = {1, 1})
+    super(size)
+    self.fill_color = color
+  end
+
   private def colors
     c = fill_color
     @@colors.fetch(c) do
@@ -17,11 +22,19 @@ class BlockShape < SF::RectangleShape
     end
   end
 
+  # Sides on which to draw bevels
+  property left = 1, top = 1, right = 1, bottom = 1
+
   def draw(target, states)
     states.transform = (states.transform * transform).scale(size)
 
     back, out, ins = {0.0, 0.02, 0.18}.map { |k|
-      [{k, k}, {1-k, k}, {1-k, 1-k}, {k, 1-k}]
+      left = {self.left, 0.2}.max
+      top = {self.top, 0.2}.max
+      right = {self.right, 0.2}.max
+      bottom = {self.bottom, 0.2}.max
+
+      [{left*k, top*k}, {1-right*k, top*k}, {1-right*k, 1-bottom*k}, {left*k, 1-bottom*k}]
     }
     ins.reverse!
     [
