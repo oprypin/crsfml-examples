@@ -12,7 +12,7 @@ class BlockShape < SF::RectangleShape
       h, s, l = rgb_to_hsl(c.r / 255.0, c.g / 255.0, c.b / 255.0)
       @@colors[c] = [-0.23, -0.07, 0.0, 0.11, -0.14].map { |d|
         rgb = hsl_to_rgb(h, (s + d/2).clamp(0.0, 1.0), (l + d).clamp(0.0, 1.0))
-        SF::Color.new(*rgb.map { |c| (c * 255).to_i8 }, c.a)
+        SF::Color.new(*rgb.map { |c| (c * 255).to_u8 }, c.a)
       }
     end
   end
