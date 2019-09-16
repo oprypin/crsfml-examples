@@ -76,7 +76,7 @@ class Snake
                  @max_turn_rate = 4.5f32, @friction = 0.9f32, @turn_penalty = 0.7f32)
     @body = Deque(SF::Vector2(Float32)).new
     (0...(@size / DENSITY).to_i).each do |i|
-      @body.push(start + {0, i * DENSITY})
+      @body.push(start + {0, (i * DENSITY).to_f32})
     end
   end
 
@@ -179,8 +179,8 @@ window = SF::RenderWindow.new(
 window.vertical_sync_enabled = true
 
 
-snake1 = Snake.new(window.size / 2 - {window.size.x / 6, 0}, snake_textures[0])
-snake2 = Snake.new(window.size / 2 + {window.size.x / 6, 0}, snake_textures[1])
+snake1 = Snake.new(SF.vector2(window.size.x * 1 // 3, window.size.y // 2), snake_textures[0])
+snake2 = Snake.new(SF.vector2(window.size.x * 2 // 3, window.size.y // 2), snake_textures[1])
 snakes = [snake1, snake2]
 
 background = SF::RectangleShape.new(window.size)

@@ -28,7 +28,7 @@ class RoundedRectangleShape < SF::ConvexShape
     ]
 
     (0...point_count).each do |index|
-      center_index = index / corner_points
+      center_index = (index / corner_points).to_i
       angle = (index - center_index) * Math::PI / 2 / (corner_points - 1)
       center = centers[center_index]
       self[index] = {

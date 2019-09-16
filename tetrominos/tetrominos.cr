@@ -51,14 +51,14 @@ class Part
   def initialize(@field : Field)
     parts, color = Parts[rand(Parts.size)]
     height = parts.lines.size
-    count = parts.split.size / height
+    count = (parts.split.size / height).to_i
     @states = Array(Matrix).new(count) { [] of Array(SF::Color?) }
     parts.split.each_with_index do |part, i|
       @states[i % count].push part.chars.map { |c| color if c == '#'}
     end
 
     @state = 0
-    @x = (@field.width - width) / 2
+    @x = ((@field.width - width) / 2).to_i
 
     @y = -height
     while collides? == :invalid
