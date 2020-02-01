@@ -46,7 +46,7 @@ class Tile < SF::Transformable
     @rectangle.origin = {0.45, 0.45}
     self.position = position
     # The tile is initially small, will be enlarged
-    self.scale = {0, 0}
+    self.scale = {0.01, 0.01}
   end
   @text_height : Float32?
 
