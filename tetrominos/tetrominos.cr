@@ -41,7 +41,7 @@ Parts = [
 ]
 
 
-alias Matrix = Array(Array(SF::Color?))
+alias Matrix = Array(Array(BlockShape?))
 
 
 class Part
@@ -52,9 +52,27 @@ class Part
     parts, color = Parts[rand(Parts.size)]
     height = parts.lines.size
     count = (parts.split.size / height).to_i
-    @states = Array(Matrix).new(count) { [] of Array(SF::Color?) }
+    @states = Array(Matrix).new(count) { [] of Array(BlockShape?) }
     parts.split.each_with_index do |part, i|
-      @states[i % count].push part.chars.map { |c| color if c == '#'}
+      @states[i % count].push part.chars.map { |c| BlockShape.new(color) if c == '#'}
+    end
+    @states.each do |part|
+      part.each do |row|
+        row.each_cons(2, true) do |(a, b)|
+          if a && b
+            a.right = 0
+            b.left = 0
+          end
+        end
+      end
+      part.transpose.each do |col|
+        col.each_cons(2, true) do |(a, b)|
+          if a && b
+            a.bottom = 0
+            b.top = 0
+          end
+        end
+      end
     end
 
     @state = 0
@@ -131,11 +149,9 @@ class Part
   end
 
   def draw(target, states)
-    rect = BlockShape.new({1, 1})
-    each_with_pos do |b, p|
-      rect.fill_color = b
-      rect.position = p
-      target.draw(rect, states)
+    each_with_pos do |block, position|
+      block.position = position
+      target.draw(block, states)
     end
   end
 end
@@ -145,7 +161,7 @@ class Field
 
   def initialize(@width = 10, @height = 20)
     @clock = SF::Clock.new
-    @body = Matrix.new(20) { Array(SF::Color?).new(10, nil) }
+    @body = Matrix.new(20) { Array(BlockShape?).new(10, nil) }
     @over = false
     @part = nil
     @interval = 1
@@ -180,7 +196,7 @@ class Field
           @body[p.y][p.x] = b if b
         end
         @part = nil
-        lines
+        clear_lines
         step
       end
     else
@@ -193,19 +209,27 @@ class Field
   end
 
   def draw(target, states)
-    rect = BlockShape.new({1, 1})
-    each_with_pos do |b, p|
-      rect.fill_color = b
-      rect.position = p
-      target.draw(rect, states)
+    each_with_pos do |block, position|
+      block.position = position
+      target.draw(block, states)
     end
     @part.try &.draw(target, states)
   end
 
-  def lines
-    @body.reject! { |line| line.all? { |b| b } }
-    while @body.size < height
-      @body.insert(0, Array(SF::Color?).new 10, nil)
+  private def clear_lines
+    while (i = @body.index { |line| line.all? })
+      if i > 0
+        @body[i - 1].each do |block|
+          block.try &.bottom = 1
+        end
+      end
+      if i < @body.size - 1
+        @body[i + 1].each do |block|
+          block.try &.top = 1
+        end
+      end
+      @body.delete_at(i)
+      @body.insert(0, Array(BlockShape?).new(10, nil))
     end
   end
 
