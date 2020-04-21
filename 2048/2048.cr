@@ -337,6 +337,7 @@ class Game2048
               return
             end
           end
+        else
         end
       end
 

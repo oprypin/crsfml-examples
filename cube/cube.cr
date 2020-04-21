@@ -56,6 +56,7 @@ while window.open?
       GL.viewport(0, 0, event.width, event.height)
     when SF::Event::Closed
       window.close()
+    else
     end
   end
 

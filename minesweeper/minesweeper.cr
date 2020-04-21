@@ -153,6 +153,7 @@ while window.open?
       coord = {(event.x / scale).to_i, (event.y / scale).to_i}
       field.check coord if event.button == SF::Mouse::Left
       field.flag coord if event.button == SF::Mouse::Right
+    else
     end
   end
 

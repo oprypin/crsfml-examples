@@ -262,16 +262,17 @@ while window.open?
       window.close
     elsif event.is_a? SF::Event::KeyPressed
       case event.code
-        when .left?, .a?
-          field.part.try { |part| part.left }
-        when .right?, .d?
-          field.part.try { |part| part.right }
-        when .q?
-          field.part.try { |part| part.ccw }
-        when .up?, .w?, .e?
-          field.part.try { |part| part.cw }
-        when .down?, .s?
-          field.step
+      when .left?, .a?
+        field.part.try { |part| part.left }
+      when .right?, .d?
+        field.part.try { |part| part.right }
+      when .q?
+        field.part.try { |part| part.ccw }
+      when .up?, .w?, .e?
+        field.part.try { |part| part.cw }
+      when .down?, .s?
+        field.step
+      else
       end
     end
   end
