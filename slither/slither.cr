@@ -32,31 +32,11 @@ struct SF::Vector2
   def length
     Math.sqrt(x*x + y*y)
   end
-
-  def dot(other : self)
-    x*other.x + y*other.y
-  end
 end
 
-# https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line
-def intersection(a1, a2, b1, b2)
-  v1 = a1-a2
-  v2 = b1-b2
-  cos = (v1.dot v2)/(v1.length*v2.length)
-  if cos.abs > 0.999
-    return (a1+a2+b1+b2)/4
-  end
-  x1, y1 = a1; x2, y2 = a2
-  x3, y3 = b1; x4, y4 = b2
-  SF.vector2(
-    ( (x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4) ) / ( (x1-x2)*(y3-y4)-(y1-y2)*(x3-x4) ),
-    ( (x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4) ) / ( (x1-x2)*(y3-y4)-(y1-y2)*(x3-x4) )
-  )
-end
-
-def orthogonal(a, b, d=1.0)
-  ortho = SF.vector2(a.y-b.y, b.x-a.x)
-  ortho *= d / ortho.length
+def orthogonal(a, b)
+  ortho = SF.vector2(a.y - b.y, b.x - a.x)
+  ortho / ortho.length
 end
 
 
@@ -118,10 +98,10 @@ class Snake
     draw_rate = (@thickness / DENSITY / k).to_i
     ia = 0
     ib = ia + draw_rate
-    ic = ib + draw_rate
     isplit = 0
-    while ic < @body.size
-      a, b, c = @body[ia], @body[ib], @body[ic]
+    while ib < @body.size
+      a, b = @body[ia], @body[ib]
+      pos = (a + b) / 2
 
       head = @thickness*4
       if ia / DENSITY <= head
@@ -130,22 +110,20 @@ class Snake
         x = ib.fdiv(@body.size-1-draw_rate)
         th = @thickness * 0.008 * Math.sqrt(7198 + 39750*x - 46875*x*x)
       end
-      o1 = orthogonal(a, b, th / 2)
-      o2 = orthogonal(b, c, th / 2)
+      ort = orthogonal(a, b) * th / 2
 
       ty = sz.y*isplit.abs/splits
-      va << SF::Vertex.new(intersection(a+o1, b+o1, b+o2, c+o2), tex_coords: {0, ty})
-      va << SF::Vertex.new(intersection(a-o1, b-o1, b-o2, c-o2), tex_coords: {sz.x, ty})
+      va << SF::Vertex.new(pos + ort, tex_coords: {0, ty})
+      va << SF::Vertex.new(pos - ort, tex_coords: {sz.x, ty})
 
       if ib == draw_rate*6
-        eyes = [b+o1*0.75, b-o1*0.75]
-        eyes_angle = Math.atan2(o1.y, o1.x)
+        eyes = [pos + ort*0.75, pos - ort*0.75]
+        eyes_angle = Math.atan2(ort.y, ort.x)
       end
 
-      delta = Math.max(Math.min(draw_rate, @body.size-1 - ic), 1)
+      delta = Math.max(Math.min(draw_rate, @body.size-1 - ib), 1)
       ia += delta
       ib += delta
-      ic += delta
 
       isplit = (isplit + 1 + splits) % (splits + splits) - splits
     end
