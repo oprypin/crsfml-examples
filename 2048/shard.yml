@@ -1,6 +1,13 @@
 name: 2048
 version: 1.0.1
 
+authors:
+  - Oleh Prypin <oleh@pryp.in>
+
 dependencies:
   crsfml:
-    github: blaxpirit/crsfml
+    github: oprypin/crsfml
+
+targets:
+  2048:
+    main: 2048.cr

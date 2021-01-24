@@ -1,8 +1,15 @@
 name: tetrominos
 version: 1.0.0
 
+authors:
+  - Oleh Prypin <oleh@pryp.in>
+
 dependencies:
   crsfml:
-    github: blaxpirit/crsfml
+    github: oprypin/crsfml
   matrix:
     github: Exilor/Matrix
+
+targets:
+  tetrominos:
+    main: tetrominos.cr

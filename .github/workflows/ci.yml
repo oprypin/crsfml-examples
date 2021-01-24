@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '0 6 * * 6'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - crystal: nightly
+            os: ubuntu-latest
+          - crystal: latest
+            os: macos-latest
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Install SFML
+        uses: oprypin/install-sfml@v1
+        with:
+          sfml: '2.5.1'
+      - name: Install Crystal
+        uses: oprypin/install-crystal@v1
+        with:
+          crystal: ${{matrix.crystal}}
+          shards: true
+      - name: Download source
+        uses: actions/checkout@v2
+
+      - name: Build 2048
+        working-directory: 2048
+        run: shards build
+
+      - name: Build cube
+        working-directory: cube
+        run: shards build
+
+      - name: Build minesweeper
+        working-directory: minesweeper
+        run: shards build
+
+      - name: Build slither
+        working-directory: slither
+        run: shards build
+
+      - name: Build tetrominos
+        working-directory: tetrominos
+        run: shards build

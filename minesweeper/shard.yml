@@ -1,6 +1,13 @@
 name: minesweeper
 version: 0.1.0
 
+authors:
+  - Oleh Prypin <oleh@pryp.in>
+
 dependencies:
   crsfml:
-    github: blaxpirit/crsfml
+    github: oprypin/crsfml
+
+targets:
+  minesweeper:
+    main: minesweeper.cr
