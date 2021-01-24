@@ -1,5 +1,5 @@
 require "crsfml"
-require "gl"
+require "crystal-raw-gl/gl"
 
 def gl_color(color : SF::Color)
   GL.color3d(color.r / 255.0, color.g / 255.0, color.b / 255.0)
@@ -112,4 +112,3 @@ while window.open?
 
   window.display()
 end
-

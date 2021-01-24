@@ -4,5 +4,5 @@ version: 1.0.0
 dependencies:
   crsfml:
     github: blaxpirit/crsfml
-  gl:
+  crystal-raw-gl:
     github: blaxpirit/crystal-raw-gl
