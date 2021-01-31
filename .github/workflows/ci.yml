@@ -18,6 +18,8 @@ jobs:
           - crystal: latest
             os: macos-latest
     runs-on: ${{matrix.os}}
+    env:
+      SHARDS_OPTS: --ignore-crystal-version
     steps:
       - name: Install SFML
         uses: oprypin/install-sfml@v1
