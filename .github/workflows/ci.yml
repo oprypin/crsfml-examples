@@ -31,7 +31,7 @@ jobs:
           crystal: ${{matrix.crystal}}
           shards: true
       - name: Download source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build 2048
         working-directory: 2048
